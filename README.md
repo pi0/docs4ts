@@ -59,7 +59,7 @@ A single documented declaration extracted from source code.
 interface ExtractJSDocsOptions
 ```
 
-Options for {@link extractJSDocs}.
+Options for [`extractJSDocs`](#extractjsdocs).
 
 ---
 
@@ -138,7 +138,7 @@ parameters, return info, examples, and other tags.
 
 **Parameters:**
 
-- **`entries`** — JSDoc entries to render (from {@link extractJSDocs} or {@link loadJSDocs})
+- **`entries`** — JSDoc entries to render (from [`extractJSDocs`](#extractjsdocs) or [`loadJSDocs`](#loadjsdocs))
 
 **Returns:** — Formatted Markdown string with `---` separators between sections
 
@@ -159,7 +159,7 @@ function jsdocsToMarkdown(source: string, options?: ExtractJSDocsOptions): strin
 
 Extract JSDoc from TypeScript/JavaScript source and return Markdown.
 
-Convenience wrapper that combines {@link extractJSDocs} and {@link renderJSDocsMarkdown}.
+Convenience wrapper that combines [`extractJSDocs`](#extractjsdocs) and [`renderJSDocsMarkdown`](#renderjsdocsmarkdown).
 
 **Parameters:**
 
@@ -187,7 +187,7 @@ const markdown = jsdocsToMarkdown(`
 interface LoadJSDocsOptions
 ```
 
-Options for {@link loadJSDocs}.
+Options for [`loadJSDocs`](#loadjsdocs).
 
 ---
 

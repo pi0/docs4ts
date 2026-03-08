@@ -32,7 +32,7 @@ export function renderJSDocsMarkdown(entries: JSDocEntry[]): string {
 
     // Description
     if (entry.description) {
-      lines.push(entry.description + "\n");
+      lines.push(_resolveInlineLinks(entry.description) + "\n");
     }
 
     // Params
@@ -41,7 +41,7 @@ export function renderJSDocsMarkdown(entries: JSDocEntry[]): string {
       lines.push("**Parameters:**\n");
       for (const p of params) {
         const type = p.type ? ` \`${p.type}\`` : "";
-        const desc = p.description ? ` — ${p.description}` : "";
+        const desc = p.description ? ` — ${_resolveInlineLinks(p.description)}` : "";
         lines.push(`- **\`${p.name}\`**${type}${desc}`);
       }
       lines.push("");
@@ -51,7 +51,7 @@ export function renderJSDocsMarkdown(entries: JSDocEntry[]): string {
     const returns = entry.tags.find((t) => t.tag === "returns" || t.tag === "return");
     if (returns) {
       const type = returns.type ? ` \`${returns.type}\`` : "";
-      const desc = returns.description ? ` — ${returns.description}` : "";
+      const desc = returns.description ? ` — ${_resolveInlineLinks(returns.description)}` : "";
       lines.push(`**Returns:**${type}${desc}\n`);
     }
 
@@ -79,13 +79,15 @@ export function renderJSDocsMarkdown(entries: JSDocEntry[]): string {
     );
     for (const t of otherTags) {
       if (t.tag === "deprecated") {
-        lines.push(`> **Deprecated**${t.description ? `: ${t.description}` : ""}\n`);
+        lines.push(
+          `> **Deprecated**${t.description ? `: ${_resolveInlineLinks(t.description)}` : ""}\n`,
+        );
       } else if (t.tag === "see") {
-        lines.push(`**See:** ${t.description}\n`);
+        lines.push(`**See:** ${_resolveInlineLinks(t.description || "")}\n`);
       } else if (t.tag === "since") {
         lines.push(`**Since:** ${t.description}\n`);
       } else if (t.description) {
-        lines.push(`**@${t.tag}** ${t.description}\n`);
+        lines.push(`**@${t.tag}** ${_resolveInlineLinks(t.description)}\n`);
       }
     }
 
@@ -114,4 +116,15 @@ export function renderJSDocsMarkdown(entries: JSDocEntry[]): string {
 export function jsdocsToMarkdown(source: string, options?: ExtractJSDocsOptions): string {
   const entries = extractJSDocs(source, options);
   return renderJSDocsMarkdown(entries);
+}
+
+/** Convert `{@link Name}` and `{@link Name text}` to Markdown anchor links. */
+function _resolveInlineLinks(text: string): string {
+  return text.replaceAll(
+    /\{@link\s+(\w+)(?:\s+([^}]+))?\}/g,
+    (_match, name: string, label?: string) => {
+      const anchor = name.toLowerCase().replace(/[^\w-]/g, "");
+      return `[\`${label || name}\`](#${anchor})`;
+    },
+  );
 }
