@@ -86,9 +86,15 @@ function resolveModulePath(dir: string, specifier: string): string | undefined {
 
   const full = resolve(dir, specifier);
 
-  // If specifier already has an extension, use as-is
+  // If specifier already has an extension and the file exists, use as-is
   if (EXTENSIONS.some((ext) => specifier.endsWith(ext))) {
-    return full;
+    if (existsSync(full)) return full;
+    // TypeScript allows `.js` imports that resolve to `.ts` files
+    const tsEquivalent = full.replace(/\.(js|jsx|mjs)$/, (_, ext) =>
+      ext === "js" ? ".ts" : ext === "jsx" ? ".tsx" : ".mts",
+    );
+    if (tsEquivalent !== full && existsSync(tsEquivalent)) return tsEquivalent;
+    return undefined;
   }
 
   // Try adding extensions, check which file exists
