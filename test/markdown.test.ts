@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderJSDocsMarkdown, jsdocsToMarkdown } from "../src/markdown.ts";
+import { sortEntries } from "../src/loader.ts";
 import type { JSDocEntry } from "../src/parser.ts";
 
 describe("renderJSDocsMarkdown", () => {
@@ -125,7 +126,8 @@ describe("renderJSDocsMarkdown", () => {
 
 describe("jsdocsToMarkdown", () => {
   it("combines extraction and rendering", () => {
-    const md = jsdocsToMarkdown(`
+    const md = jsdocsToMarkdown(
+      `
 /**
  * Add two numbers.
  * @param a - First number
@@ -142,12 +144,78 @@ export function add(a: number, b: number): number {
 export interface User {
   name: string;
 }
-`);
+`,
+      { includeInterfaces: true },
+    );
     expect(md).toMatchSnapshot();
+  });
+
+  it("excludes interfaces by default", () => {
+    const md = jsdocsToMarkdown(`
+/** A function. */
+export function foo(): void {}
+
+/** An interface. */
+export interface Bar {
+  x: number;
+}
+`);
+    expect(md).toContain("### `foo`");
+    expect(md).not.toContain("### `Bar`");
+  });
+
+  it("includes interfaces with opt-in", () => {
+    const md = jsdocsToMarkdown(
+      `
+/** A function. */
+export function foo(): void {}
+
+/** An interface. */
+export interface Bar {
+  x: number;
+}
+`,
+      { includeInterfaces: true },
+    );
+    expect(md).toContain("### `foo`");
+    expect(md).toContain("### `Bar`");
   });
 
   it("returns empty string for source without jsdocs", () => {
     const md = jsdocsToMarkdown(`export function noDoc() {}`);
     expect(md).toBe("");
+  });
+});
+
+describe("sortEntries", () => {
+  it("sorts entries alphabetically", () => {
+    const entries: JSDocEntry[] = [
+      { kind: "function", name: "zebra", exported: true, tags: [] },
+      { kind: "function", name: "alpha", exported: true, tags: [] },
+      { kind: "function", name: "middle", exported: true, tags: [] },
+    ];
+    const sorted = sortEntries(entries);
+    expect(sorted.map((e) => e.name)).toEqual(["alpha", "middle", "zebra"]);
+  });
+
+  it("places interfaces last", () => {
+    const entries: JSDocEntry[] = [
+      { kind: "interface", name: "Aaa", exported: true, tags: [] },
+      { kind: "function", name: "zzz", exported: true, tags: [] },
+      { kind: "interface", name: "Bbb", exported: true, tags: [] },
+      { kind: "type", name: "ccc", exported: true, tags: [] },
+    ];
+    const sorted = sortEntries(entries);
+    expect(sorted.map((e) => e.name)).toEqual(["ccc", "zzz", "Aaa", "Bbb"]);
+  });
+
+  it("does not mutate original array", () => {
+    const entries: JSDocEntry[] = [
+      { kind: "function", name: "b", exported: true, tags: [] },
+      { kind: "function", name: "a", exported: true, tags: [] },
+    ];
+    const sorted = sortEntries(entries);
+    expect(sorted).not.toBe(entries);
+    expect(entries[0]!.name).toBe("b");
   });
 });

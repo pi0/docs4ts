@@ -49,7 +49,17 @@ export async function loadJSDocs(
   }
 
   await processFile(entry);
-  return entries;
+  return sortEntries(entries);
+}
+
+/** Sort entries alphabetically, with interfaces grouped at the end. */
+export function sortEntries(entries: JSDocEntry[]): JSDocEntry[] {
+  return entries.toSorted((a, b) => {
+    const aIsInterface = a.kind === "interface" ? 1 : 0;
+    const bIsInterface = b.kind === "interface" ? 1 : 0;
+    if (aIsInterface !== bIsInterface) return aIsInterface - bIsInterface;
+    return a.name.localeCompare(b.name);
+  });
 }
 
 // --- Internal helpers ---

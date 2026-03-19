@@ -1,6 +1,13 @@
 import type { JSDocEntry } from "./parser.ts";
 import type { ExtractJSDocsOptions } from "./parser.ts";
 import { extractJSDocs } from "./parser.ts";
+import { sortEntries } from "./loader.ts";
+
+/** Options for {@link renderJSDocsMarkdown}. */
+export interface RenderOptions {
+  /** Include interface declarations in output (default: false) */
+  includeInterfaces?: boolean;
+}
 
 /**
  * Render an array of JSDoc entries as formatted Markdown.
@@ -9,15 +16,20 @@ import { extractJSDocs } from "./parser.ts";
  * parameters, return info, examples, and other tags.
  *
  * @param entries - JSDoc entries to render (from {@link extractJSDocs} or {@link loadJSDocs})
+ * @param options - Render options (include interfaces)
  * @returns Formatted Markdown string with `---` separators between sections
  * @example
  * const entries = await loadJSDocs("src/index.ts");
  * const markdown = renderJSDocsMarkdown(entries);
  */
-export function renderJSDocsMarkdown(entries: JSDocEntry[]): string {
+export function renderJSDocsMarkdown(entries: JSDocEntry[], options?: RenderOptions): string {
   const sections: string[] = [];
 
-  for (const entry of entries) {
+  const sorted = sortEntries(
+    options?.includeInterfaces ? entries : entries.filter((e) => e.kind !== "interface"),
+  );
+
+  for (const entry of sorted) {
     const lines: string[] = [];
 
     // Heading
@@ -113,9 +125,12 @@ export function renderJSDocsMarkdown(entries: JSDocEntry[]): string {
  *   }
  * `);
  */
-export function jsdocsToMarkdown(source: string, options?: ExtractJSDocsOptions): string {
+export function jsdocsToMarkdown(
+  source: string,
+  options?: ExtractJSDocsOptions & RenderOptions,
+): string {
   const entries = extractJSDocs(source, options);
-  return renderJSDocsMarkdown(entries);
+  return renderJSDocsMarkdown(entries, options);
 }
 
 /** Convert `{@link Name}` and `{@link Name text}` to Markdown anchor links. */

@@ -6,6 +6,6 @@ export {
   parseJSDoc,
 } from "./parser.ts";
 
-export { jsdocsToMarkdown, renderJSDocsMarkdown } from "./markdown.ts";
+export { type RenderOptions, jsdocsToMarkdown, renderJSDocsMarkdown } from "./markdown.ts";
 
-export { type LoadJSDocsOptions, loadJSDocs } from "./loader.ts";
+export { type LoadJSDocsOptions, loadJSDocs, sortEntries } from "./loader.ts";
